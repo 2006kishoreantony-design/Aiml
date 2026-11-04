@@ -1,0 +1,53 @@
+PROGRAM
+# Sentiment Analysis with Random Forest
+
+# Import Libraries
+import numpy as np
+import pandas as pd
+from tensorflow.keras.datasets import imdb
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import classification_report, accuracy_score
+from tensorflow.keras.preprocessing.sequence import pad_sequences
+
+# 1. Load IMDB dataset (pre-tokenized as integers)
+num_words = 5000  # Only keep top 5000 words
+(X_train, y_train), (X_test, y_test) = imdb.load_data(num_words=num_words)
+
+# 2. Decode integers back to words for TF-IDF processing
+word_index = imdb.get_word_index()
+reverse_index = {value: key for (key, value) in word_index.items()}
+
+def decode_review(encoded_review):
+    return " ".join([reverse_index.get(i - 3, "?") for i in encoded_review if i >= 3])
+
+X_train_text = [" ".join([reverse_index.get(i - 3, "?") for i in seq if i >= 3]) for seq in X_train]
+X_test_text = [" ".join([reverse_index.get(i - 3, "?") for i in seq if i >= 3]) for seq in X_test]
+
+# 3. Convert text to TF-IDF features
+vectorizer = TfidfVectorizer(max_features=5000, stop_words="english")
+X_train_features = vectorizer.fit_transform(X_train_text)
+X_test_features = vectorizer.transform(X_test_text)
+
+# 4. Train Random Forest Classifier
+rf_clf = RandomForestClassifier(n_estimators=200, random_state=42, n_jobs=-1)
+rf_clf.fit(X_train_features, y_train)
+
+# 5. Predictions & Evaluation
+y_pred = rf_clf.predict(X_test_features)
+
+print("\nModel Accuracy:", accuracy_score(y_test, y_pred))
+print("\nClassification Report:\n", classification_report(y_test, y_pred, target_names=["Negative", "Positive"]))
+
+# 6. Test with custom reviews
+new_reviews = [
+    "This movie was absolutely fantastic! The story, the acting, everything was great.",
+    "I hated this movie. It was boring and a complete waste of time."
+]
+
+new_features = vectorizer.transform(new_reviews)
+predictions = rf_clf.predict(new_features)
+
+print("\nNew Review Predictions:")
+for review, label in zip(new_reviews, predictions):
+    print(f"'{review}' → {'Positive' if label == 1 else 'Negative'}")
