@@ -1,0 +1,38 @@
+PROGRAM
+# Importing Libraries
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.cluster import KMeans
+from sklearn import datasets
+from sklearn.preprocessing import StandardScaler
+
+# Load Iris dataset
+iris = datasets.load_iris()
+X = iris.data  # Features
+y = iris.target  # True labels (not used in clustering)
+
+# Standardize the data (important for clustering)
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+
+# Apply K-Means Clustering
+kmeans = KMeans(n_clusters=3, random_state=42, n_init=10)
+kmeans.fit(X_scaled)
+
+# Predicted clusters
+y_kmeans = kmeans.predict(X_scaled)
+
+# Print Cluster Centers
+print("Cluster Centers:\n", kmeans.cluster_centers_)
+
+# Visualization (using first two features for 2D plot)
+plt.figure(figsize=(8,6))
+plt.scatter(X_scaled[:, 0], X_scaled[:, 1], c=y_kmeans, cmap="viridis", marker="o", edgecolor="k", s=60)
+plt.scatter(kmeans.cluster_centers_[:, 0], kmeans.cluster_centers_[:, 1],
+            c="red", marker="X", s=200, label="Centroids")
+plt.xlabel("Feature 1 (Standardized)")
+plt.ylabel("Feature 2 (Standardized)")
+plt.title("K-Means Clustering on Iris Dataset")
+plt.legend()
+plt.show()
