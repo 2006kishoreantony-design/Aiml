@@ -1,0 +1,16 @@
+PROGRAM
+#Import the required libraries
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+#Import the dataset
+df=pd.read_csv('heart.csv')
+
+#Build the Model
+from pgmpy.models import BayesianModel
+from pgmpy.estimators import MaximumLikelihoodEstimator,BayesianEstimator
+model=BayesianModel([('age','target'),('sex','target'),('exang','target'),('cp','target'),('target','restecg'),('target','chol')])
+model.fit(df,estimator=MaximumLikelihoodEstimator)
+print(model.get_cpds('age'))
